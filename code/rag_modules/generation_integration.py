@@ -108,7 +108,12 @@ class GenerationIntegrationModule:
 相关食谱信息:
 {context}
 
-请提供详细、实用的回答。如果信息不足，请诚实说明。
+请直接回答用户问题，并遵循以下规则：
+- 只在用户询问完整做法、步骤或教程时，才展开制作流程
+- 如果用户只询问食材、工具、用量、时间、温度、火候或技巧，只回答对应信息
+- 不要为了显得完整而输出无关的菜品介绍、完整教程或额外背景
+- 可以使用简短列表，让答案清楚可读
+- 如果信息不足，请诚实说明，不要补充食谱中没有的信息
 
 回答:""")
 
@@ -248,21 +253,30 @@ class GenerationIntegrationModule:
             query: 用户查询
 
         Returns:
-            路由类型 ('list', 'detail', 'general')
+            路由类型 ('list', 'ingredients', 'steps', 'tips', 'time', 'general')
         """
         prompt = ChatPromptTemplate.from_template("""
-根据用户的问题，将其分类为以下三种类型之一：
+根据用户的问题，将其分类为以下六种类型之一：
 
 1. 'list' - 用户想要获取菜品列表或推荐，只需要菜名
    例如：推荐几个素菜、有什么川菜、给我3个简单的菜
 
-2. 'detail' - 用户想要具体的制作方法或详细信息
-   例如：宫保鸡丁怎么做、制作步骤、需要什么食材
+2. 'ingredients' - 用户询问食材、原料、工具、配料、调料、用量
+   例如：需要什么食材、有哪些必备原料和工具、两只鸡蛋要多少水和盐
 
-3. 'general' - 其他一般性问题
+3. 'steps' - 用户询问完整做法、制作步骤、流程、教程
+   例如：宫保鸡丁怎么做、制作步骤是什么、完整流程
+
+4. 'tips' - 用户询问技巧、注意事项、怎么避免失败
+   例如：怎么做才嫩、怎么不粘锅、有什么注意事项
+
+5. 'time' - 用户询问时间、温度、火候、烤多久、蒸多久
+   例如：空气炸锅多少度多久、蒸几分钟、火候怎么控制
+
+6. 'general' - 其他一般性问题
    例如：什么是川菜、制作技巧、营养价值
 
-请只返回分类结果：list、detail 或 general
+请只返回分类结果：list、ingredients、steps、tips、time 或 general
 
 用户问题: {query}
 
@@ -278,7 +292,8 @@ class GenerationIntegrationModule:
         result = chain.invoke(query).strip().lower()
 
         # 确保返回有效的路由类型
-        if result in ['list', 'detail', 'general']:
+        valid_routes = ['list', 'ingredients', 'steps', 'tips', 'time', 'general']
+        if result in valid_routes:
             return result
         else:
             return 'general'  # 默认类型
@@ -333,7 +348,12 @@ class GenerationIntegrationModule:
 相关食谱信息:
 {context}
 
-请提供详细、实用的回答。如果信息不足，请诚实说明。
+请直接回答用户问题，并遵循以下规则：
+- 只在用户询问完整做法、步骤或教程时，才展开制作流程
+- 如果用户只询问食材、工具、用量、时间、温度、火候或技巧，只回答对应信息
+- 不要为了显得完整而输出无关的菜品介绍、完整教程或额外背景
+- 可以使用简短列表，让答案清楚可读
+- 如果信息不足，请诚实说明，不要补充食谱中没有的信息
 
 回答:""")
 

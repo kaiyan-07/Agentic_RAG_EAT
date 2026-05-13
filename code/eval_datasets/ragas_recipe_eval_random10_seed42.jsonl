@@ -1,0 +1,10 @@
+{"id": "step_006", "category": "step", "user_input": "可乐鸡翅怎么收汁才不苦？", "reference": "鸡翅煎至两面金黄后倒入可乐没过鸡翅，煮沸撇浮沫并调味；中火慢煮，到可乐呈挂丝状态时关小火让汁挂在鸡翅上，最后收汁不要开过大火，避免味道发苦。", "source_hint": "data/cook/dishes/meat_dish/可乐鸡翅.md"}
+{"id": "step_004", "category": "step", "user_input": "西红柿炒鸡蛋的基本步骤是什么？", "reference": "西红柿洗净切块，鸡蛋加盐搅匀；热锅炒鸡蛋至半熟后盛出；再炒西红柿至软烂，加入半熟鸡蛋翻匀，最后加剩余盐、可选糖和葱花后出锅。", "source_hint": "data/cook/dishes/vegetable_dish/西红柿炒鸡蛋.md"}
+{"id": "fact_020", "category": "fact", "user_input": "糖醋汁的经典比例和具体用量是什么？", "reference": "糖醋汁按 1:2:3:4:5 调制，菜谱给出的用量是料酒 10ml、白醋 20ml、白糖 30g、生抽 40ml、清水 50ml。", "source_hint": "data/cook/dishes/condiment/糖醋汁.md"}
+{"id": "fact_012", "category": "fact", "user_input": "可乐鸡翅调味里白糖、生抽、老抽和盐是多少？", "reference": "菜谱中白糖 10g、生抽 15g、老抽 3g、盐 2g。", "source_hint": "data/cook/dishes/meat_dish/可乐鸡翅.md"}
+{"id": "fact_005", "category": "fact", "user_input": "牛奶燕麦每人需要多少牛奶、鸡蛋和燕麦？", "reference": "牛奶燕麦每人需要牛奶 280ml、鸡蛋 1 个、燕麦 40g。", "source_hint": "data/cook/dishes/breakfast/牛奶燕麦.md"}
+{"id": "rec_006", "category": "recommendation", "user_input": "推荐一道适合配米饭的肉菜。", "reference": "可以推荐简易红烧肉、可乐鸡翅、宫保鸡丁等肉菜；回答应来自菜谱库，并简要说明主要食材和关键做法。", "source_hint": "data/cook/dishes/meat_dish"}
+{"id": "step_007", "category": "step", "user_input": "蛋炒饭怎么炒到粒粒分明？", "reference": "米饭提前铲成小块，最好用隔夜冷饭；炒蛋白和蛋黄后加入火腿等配料，再倒入米饭大火翻炒并把块状米饭捣碎，最后小火调味，炒到米饭变干并有米粒跳起即可。", "source_hint": "data/cook/dishes/staple/蛋炒饭.md"}
+{"id": "fact_010", "category": "fact", "user_input": "空气炸锅鸡翅中的总烹饪时长和实际操作时间是多少？", "reference": "菜谱写明烹饪时长约 40 分钟，包含准备 3 分钟、解冻 20 分钟、下锅 17 分钟；实际操作时间约 5 分钟。", "source_hint": "data/cook/dishes/semi-finished/空气炸锅鸡翅中/空气炸锅鸡翅中.md"}
+{"id": "step_010", "category": "step", "user_input": "宫保鸡丁什么时候放花生和勾芡？", "reference": "鸡丁和葱粒焖 2 分钟后转大火，放入熟花生、干辣椒和花椒，再加鸡精、香醋、白糖翻匀；最后加入水淀粉翻炒并收汁到合适浓度，关火淋芝麻油。", "source_hint": "data/cook/dishes/meat_dish/宫保鸡丁/宫保鸡丁.md"}
+{"id": "fact_017", "category": "fact", "user_input": "宫保鸡丁的必须配料有哪些？", "reference": "宫保鸡丁必须配料包括手枪腿或鸡胸肉、大葱、熟花生、姜片、干辣椒或二荆条、生抽、白糖、盐、植物油、淀粉和料酒。", "source_hint": "data/cook/dishes/meat_dish/宫保鸡丁/宫保鸡丁.md"}

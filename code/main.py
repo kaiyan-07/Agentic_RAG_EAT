@@ -209,7 +209,7 @@ class RecipeRAGSystem:
         if options["enable_router"]:
             route_type = self.generation_module.query_router(question)
         else:
-            route_type = "detail"
+            route_type = "steps"
         self._log_progress(f"🎯 查询类型: {route_type}", verbose)
 
         if route_type == 'list' or not options["enable_rewrite"]:
@@ -291,14 +291,15 @@ class RecipeRAGSystem:
             self._log_progress("📋 生成菜品列表...", verbose)
             response = self.generation_module.generate_list_answer(question, relevant_docs)
         else:
-            self._log_progress("✍️ 生成详细回答...", verbose)
-            if route_type == "detail":
+            if route_type == "steps":
+                self._log_progress("✍️ 生成详细步骤回答...", verbose)
                 response = (
                     self.generation_module.generate_step_by_step_answer_stream(question, relevant_docs)
                     if stream else
                     self.generation_module.generate_step_by_step_answer(question, relevant_docs)
                 )
             else:
+                self._log_progress("✍️ 生成直接回答...", verbose)
                 response = (
                     self.generation_module.generate_basic_answer_stream(question, relevant_docs)
                     if stream else
