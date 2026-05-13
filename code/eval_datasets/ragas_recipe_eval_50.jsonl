@@ -1,0 +1,50 @@
+{"id":"fact_001","category":"fact","user_input":"蒸水蛋需要哪些必备原料和工具？","reference":"蒸水蛋需要新鲜鸡蛋、热水，以及锡纸或保鲜膜。","source_hint":"data/cook/dishes/breakfast/蒸水蛋.md"}
+{"id":"fact_002","category":"fact","user_input":"蒸水蛋里两只鸡蛋大概要加多少热水和盐？","reference":"菜谱中两只鸡蛋对应盐 2g、热水 260ml。","source_hint":"data/cook/dishes/breakfast/蒸水蛋.md"}
+{"id":"fact_003","category":"fact","user_input":"鸡蛋三明治需要哪些主要食材？","reference":"鸡蛋三明治需要鸡蛋、吐司、培根、黄油、蛋黄酱、盐和黑胡椒。","source_hint":"data/cook/dishes/breakfast/鸡蛋三明治.md"}
+{"id":"fact_004","category":"fact","user_input":"鸡蛋三明治一份的鸡蛋、吐司和培根用量是多少？","reference":"一份鸡蛋三明治使用鸡蛋 1 个、吐司 2 片、培根 2 片。","source_hint":"data/cook/dishes/breakfast/鸡蛋三明治.md"}
+{"id":"fact_005","category":"fact","user_input":"牛奶燕麦每人需要多少牛奶、鸡蛋和燕麦？","reference":"牛奶燕麦每人需要牛奶 280ml、鸡蛋 1 个、燕麦 40g。","source_hint":"data/cook/dishes/breakfast/牛奶燕麦.md"}
+{"id":"fact_006","category":"fact","user_input":"牛奶燕麦的快煮方法需要微波多久？","reference":"快煮燕麦和牛奶混合后，中等火力微波 4 分钟。","source_hint":"data/cook/dishes/breakfast/牛奶燕麦.md"}
+{"id":"fact_007","category":"fact","user_input":"西红柿炒鸡蛋一人份的西红柿、鸡蛋和盐大概是多少？","reference":"一人份使用西红柿 1 个约 180g、鸡蛋 1.5 个向上取整，盐约 1.5-2g。","source_hint":"data/cook/dishes/vegetable_dish/西红柿炒鸡蛋.md"}
+{"id":"fact_008","category":"fact","user_input":"西红柿炒鸡蛋里糖和葱花是不是必备？","reference":"糖和葱花都是可选项，糖约 0-2g 每份，葱花约 0-10g 每份。","source_hint":"data/cook/dishes/vegetable_dish/西红柿炒鸡蛋.md"}
+{"id":"fact_009","category":"fact","user_input":"空气炸锅鸡翅中需要烤多久、多少度？","reference":"鸡翅自然解冻后，空气炸锅 200°C 先烤 10 分钟，翻面后再 200°C 烤 7 分钟。","source_hint":"data/cook/dishes/semi-finished/空气炸锅鸡翅中/空气炸锅鸡翅中.md"}
+{"id":"fact_010","category":"fact","user_input":"空气炸锅鸡翅中的总烹饪时长和实际操作时间是多少？","reference":"菜谱写明烹饪时长约 40 分钟，包含准备 3 分钟、解冻 20 分钟、下锅 17 分钟；实际操作时间约 5 分钟。","source_hint":"data/cook/dishes/semi-finished/空气炸锅鸡翅中/空气炸锅鸡翅中.md"}
+{"id":"fact_011","category":"fact","user_input":"可乐鸡翅一盘需要多少鸡翅和可乐？","reference":"一盘可乐鸡翅使用鸡翅 10-12 只、可乐 500ml。","source_hint":"data/cook/dishes/meat_dish/可乐鸡翅.md"}
+{"id":"fact_012","category":"fact","user_input":"可乐鸡翅调味里白糖、生抽、老抽和盐是多少？","reference":"菜谱中白糖 10g、生抽 15g、老抽 3g、盐 2g。","source_hint":"data/cook/dishes/meat_dish/可乐鸡翅.md"}
+{"id":"fact_013","category":"fact","user_input":"蛋炒饭需要哪些主要食材？","reference":"蛋炒饭需要冷饭、鸡蛋、火腿、油、盐、胡椒粉、生抽和香葱，黄瓜、胡萝卜和熟肉是可选搭配。","source_hint":"data/cook/dishes/staple/蛋炒饭.md"}
+{"id":"fact_014","category":"fact","user_input":"蛋炒饭每份大概要多少冷饭、鸡蛋和生抽？","reference":"每份蛋炒饭使用冷饭约 500ml，鸡蛋按份数乘 1.5 后向下取整，生抽约 10ml 每份。","source_hint":"data/cook/dishes/staple/蛋炒饭.md"}
+{"id":"fact_015","category":"fact","user_input":"简易红烧肉需要哪些主要调料？","reference":"简易红烧肉需要生姜、冰糖、生抽、老抽、料酒、香叶、八角、盐、水和葱等调料。","source_hint":"data/cook/dishes/meat_dish/红烧肉/简易红烧肉.md"}
+{"id":"fact_016","category":"fact","user_input":"简易红烧肉里五花肉、冰糖、生抽和老抽的用量是多少？","reference":"菜谱中猪五花肉约 3-4 斤，冰糖 15g，生抽 10ml，老抽 15ml。","source_hint":"data/cook/dishes/meat_dish/红烧肉/简易红烧肉.md"}
+{"id":"fact_017","category":"fact","user_input":"宫保鸡丁的必须配料有哪些？","reference":"宫保鸡丁必须配料包括手枪腿或鸡胸肉、大葱、熟花生、姜片、干辣椒或二荆条、生抽、白糖、盐、植物油、淀粉和料酒。","source_hint":"data/cook/dishes/meat_dish/宫保鸡丁/宫保鸡丁.md"}
+{"id":"fact_018","category":"fact","user_input":"清蒸鲈鱼每份需要多少蒸鱼豉油、料酒和盐？","reference":"每份清蒸鲈鱼需要蒸鱼豉油 10-15ml、料酒 10-15ml、食用盐 5-10g。","source_hint":"data/cook/dishes/aquatic/清蒸鲈鱼/清蒸鲈鱼.md"}
+{"id":"fact_019","category":"fact","user_input":"葱油拌面的葱油酱汁基础量是多少？","reference":"葱油酱汁基础量约够 3-4 份，包括小葱 100g、食用油 100ml、生抽 60ml、老抽 20ml、白糖 15g。","source_hint":"data/cook/dishes/staple/葱油拌面.md"}
+{"id":"fact_020","category":"fact","user_input":"糖醋汁的经典比例和具体用量是什么？","reference":"糖醋汁按 1:2:3:4:5 调制，菜谱给出的用量是料酒 10ml、白醋 20ml、白糖 30g、生抽 40ml、清水 50ml。","source_hint":"data/cook/dishes/condiment/糖醋汁.md"}
+{"id":"step_001","category":"step","user_input":"蒸水蛋怎么做才嫩？","reference":"鸡蛋打散后，将盐化入约 20-30°C 温水，再把盐水倒入蛋液单方向搅匀，气泡可舀出或过筛；碗口用锡纸或盘子盖住，中火烧开后转最小火蒸 4 分钟。","source_hint":"data/cook/dishes/breakfast/蒸水蛋.md"}
+{"id":"step_002","category":"step","user_input":"鸡蛋三明治怎么组装？","reference":"先把吐司切边，鸡蛋煮熟捣碎后和蛋黄酱、盐、黑胡椒混合；黄油煎熟培根；最后在两片吐司之间夹鸡蛋酱和培根，切成三角形。","source_hint":"data/cook/dishes/breakfast/鸡蛋三明治.md"}
+{"id":"step_003","category":"step","user_input":"牛奶燕麦的常规做法是什么？","reference":"冷牛奶先倒入早餐杯；燕麦用约 200ml 水煮，水沸后再煮 2 分钟；把煮好的燕麦捞入牛奶中，尽量不要把煮燕麦的水倒进去。","source_hint":"data/cook/dishes/breakfast/牛奶燕麦.md"}
+{"id":"step_004","category":"step","user_input":"西红柿炒鸡蛋的基本步骤是什么？","reference":"西红柿洗净切块，鸡蛋加盐搅匀；热锅炒鸡蛋至半熟后盛出；再炒西红柿至软烂，加入半熟鸡蛋翻匀，最后加剩余盐、可选糖和葱花后出锅。","source_hint":"data/cook/dishes/vegetable_dish/西红柿炒鸡蛋.md"}
+{"id":"step_005","category":"step","user_input":"空气炸锅鸡翅中怎么做？","reference":"鸡翅从冰箱取出后鸡翼面朝下放入锡纸烤盘，撒罗勒碎并盖保鲜膜自然解冻 20 分钟；空气炸锅 200°C 烤 10 分钟，翻面后再撒罗勒碎并烤 7 分钟。","source_hint":"data/cook/dishes/semi-finished/空气炸锅鸡翅中/空气炸锅鸡翅中.md"}
+{"id":"step_006","category":"step","user_input":"可乐鸡翅怎么收汁才不苦？","reference":"鸡翅煎至两面金黄后倒入可乐没过鸡翅，煮沸撇浮沫并调味；中火慢煮，到可乐呈挂丝状态时关小火让汁挂在鸡翅上，最后收汁不要开过大火，避免味道发苦。","source_hint":"data/cook/dishes/meat_dish/可乐鸡翅.md"}
+{"id":"step_007","category":"step","user_input":"蛋炒饭怎么炒到粒粒分明？","reference":"米饭提前铲成小块，最好用隔夜冷饭；炒蛋白和蛋黄后加入火腿等配料，再倒入米饭大火翻炒并把块状米饭捣碎，最后小火调味，炒到米饭变干并有米粒跳起即可。","source_hint":"data/cook/dishes/staple/蛋炒饭.md"}
+{"id":"step_008","category":"step","user_input":"简易红烧肉怎么炖？","reference":"五花肉冷水加料酒和葱姜煮 15 分钟去腥；不放油煎出油后加冰糖上色，再加生抽、老抽和料酒；加开水、姜、香叶、八角炖 40 分钟，放入蛋和豆皮后再中小火约 40 分钟，最后大火收汁但不要收干，加盐出锅。","source_hint":"data/cook/dishes/meat_dish/红烧肉/简易红烧肉.md"}
+{"id":"step_009","category":"step","user_input":"宫保鸡丁的简易版本怎么处理鸡丁？","reference":"鸡腿去骨后拍打肉面，切成约 1.5cm 肉丁并泡水 10 分钟；控干后加入盐、老抽、料酒和淀粉拌到微干，再缓慢加入葱姜水搅到粘手，密封冷藏腌制 1 小时。","source_hint":"data/cook/dishes/meat_dish/宫保鸡丁/宫保鸡丁.md"}
+{"id":"step_010","category":"step","user_input":"宫保鸡丁什么时候放花生和勾芡？","reference":"鸡丁和葱粒焖 2 分钟后转大火，放入熟花生、干辣椒和花椒，再加鸡精、香醋、白糖翻匀；最后加入水淀粉翻炒并收汁到合适浓度，关火淋芝麻油。","source_hint":"data/cook/dishes/meat_dish/宫保鸡丁/宫保鸡丁.md"}
+{"id":"step_011","category":"step","user_input":"清蒸鲈鱼怎么蒸？","reference":"鲈鱼处理干净后擦干并两面划刀，用盐抹鱼身内外腌制 10 分钟以上；鱼肚和鱼身放姜葱，用筷子把鱼和盘子隔开，水热后大火蒸 10 分钟；蒸好换盘去姜葱，浇蒸鱼豉油，再铺姜葱丝并淋热油。","source_hint":"data/cook/dishes/aquatic/清蒸鲈鱼/清蒸鲈鱼.md"}
+{"id":"step_012","category":"step","user_input":"电饭煲蒸米饭的流程是什么？","reference":"先清洗米，把米和水加入电饭煲，接通电源进入加热模式约 30 分钟；电饭煲自动保温后，再把米饭焖 10-15 分钟，最后盛出。","source_hint":"data/cook/dishes/staple/米饭/电饭煲蒸米饭.md"}
+{"id":"step_013","category":"step","user_input":"紫菜蛋花汤怎么让蛋花嫩一点？","reference":"紫菜泡 15 分钟后沥干，锅中加水、油和盐，水开后放紫菜；紫菜烧开 3 分钟后转小火，将蛋液围绕中间沸腾的水徐徐倒入，盖锅熄火等约半分钟再打开。","source_hint":"data/cook/dishes/soup/紫菜蛋花汤.md"}
+{"id":"step_014","category":"step","user_input":"葱油拌面的葱油酱汁怎么做？","reference":"小葱洗净切 5-7cm 长段，锅中加 100ml 油中火烧热，先放葱白煸至微黄，再放葱绿转小火煸 15-20 分钟至焦黄酥脆；捞出葱段后，在葱油里加入生抽、老抽和白糖，小火约 1 分钟搅匀至糖溶解。","source_hint":"data/cook/dishes/staple/葱油拌面.md"}
+{"id":"step_015","category":"step","user_input":"糖醋汁做好后怎么用到菜里？","reference":"先按比例把清水、生抽、白糖、白醋和料酒在小碗中搅匀；等不同菜肴的食材处理完后，把糖醋汁倒入锅中烹制 5-10 分钟，最后大火收汁增加浓度、香味和光泽。","source_hint":"data/cook/dishes/condiment/糖醋汁.md"}
+{"id":"step_016","category":"step","user_input":"白灼菜心怎么白灼和浇汁？","reference":"菜心洗净并处理硬根，沸水中加入盐和食用油；先烫根茎约 1 分钟，再整棵菜心烫约 1 分钟后码盘；另起锅用生抽、蚝油、糖、水、蒜末和小米辣煮料汁，稍收后浇在菜心上。","source_hint":"data/cook/dishes/vegetable_dish/白灼菜心/白灼菜心.md"}
+{"id":"step_017","category":"step","user_input":"日式咖喱饭的烧煮过程是什么？","reference":"热油锅放蒜和肉快速翻炒至肉表面变白，再依次加入胡萝卜、洋葱和土豆翻炒；加水没过食材，沸腾后煮 15 分钟；关火加入切碎咖喱块搅拌，融化后再开火缓慢搅拌 10 分钟，至粘稠后关火。","source_hint":"data/cook/dishes/staple/日式咖喱饭/日式咖喱饭.md"}
+{"id":"step_018","category":"step","user_input":"烤蛋挞的蛋挞液怎么做？","reference":"碗放在秤上称 450g 淡奶油，加入 80g 白砂糖、200g 牛奶和 8 个蛋黄，搅拌到糖融化；再用筛网过滤掉蛋膜、蛋壳、未融化糖和结块淡奶油。","source_hint":"data/cook/dishes/dessert/烤蛋挞/烤蛋挞.md"}
+{"id":"step_019","category":"step","user_input":"烤蛋挞要预热和烤多久？","reference":"烤箱先设为 220°C 预热约 10 分钟；蛋挞液倒入蛋挞皮时液面距离上沿约 0.5cm；烤制时温度为 200°C，时间为 25 分钟。","source_hint":"data/cook/dishes/dessert/烤蛋挞/烤蛋挞.md"}
+{"id":"step_020","category":"step","user_input":"清蒸鲈鱼为什么要用筷子把鱼和盘子隔开？","reference":"菜谱说明用筷子隔开鱼和盘子可以避免鱼直接接触滴下的水导致腥味，也能让鱼在蒸制时受热更均匀。","source_hint":"data/cook/dishes/aquatic/清蒸鲈鱼/清蒸鲈鱼.md"}
+{"id":"rec_001","category":"recommendation","user_input":"推荐几个适合快速早餐的菜谱。","reference":"可以推荐数据集中适合早餐或快速制作的菜谱，例如牛奶燕麦、鸡蛋三明治、蒸水蛋、吐司果酱等，并说明它们操作简单或耗时较短。","source_hint":"data/cook/dishes/breakfast"}
+{"id":"rec_002","category":"recommendation","user_input":"我想做不太难的鸡蛋类早餐，有什么推荐？","reference":"可以推荐蒸水蛋、鸡蛋三明治、美式炒蛋、太阳蛋、牛奶燕麦等鸡蛋相关早餐，并优先说明难度较低、食材常见。","source_hint":"data/cook/dishes/breakfast"}
+{"id":"rec_003","category":"recommendation","user_input":"推荐几道适合新手的家常菜。","reference":"可以推荐西红柿炒鸡蛋、白灼菜心、紫菜蛋花汤、空气炸锅鸡翅中、葱油拌面等难度较低或步骤清晰的菜谱。","source_hint":"data/cook/dishes"}
+{"id":"rec_004","category":"recommendation","user_input":"我想做一道简单的绿叶菜，推荐什么？","reference":"可以推荐白灼菜心等蔬菜类菜谱，并说明白灼菜心是快速解决绿叶菜的方式，主要用菜心、生抽、蚝油、蒜、小米辣和食用油。","source_hint":"data/cook/dishes/vegetable_dish/白灼菜心/白灼菜心.md"}
+{"id":"rec_005","category":"recommendation","user_input":"晚饭想吃面，推荐一个简单的面食。","reference":"可以推荐葱油拌面，因为它是简单的上海家常面点，约 20 分钟可完成，主要需要干面条、小葱、生抽、老抽和白糖。","source_hint":"data/cook/dishes/staple/葱油拌面.md"}
+{"id":"rec_006","category":"recommendation","user_input":"推荐一道适合配米饭的肉菜。","reference":"可以推荐简易红烧肉、可乐鸡翅、宫保鸡丁等肉菜；回答应来自菜谱库，并简要说明主要食材和关键做法。","source_hint":"data/cook/dishes/meat_dish"}
+{"id":"rec_007","category":"recommendation","user_input":"想用空气炸锅做半成品，有什么可以做？","reference":"可以推荐空气炸锅鸡翅中或空气炸锅羊排等半成品菜谱；其中空气炸锅鸡翅中需要解冻后 200°C 烤 10 分钟、翻面再烤 7 分钟。","source_hint":"data/cook/dishes/semi-finished"}
+{"id":"rec_008","category":"recommendation","user_input":"推荐一个适合甜口的鸡肉菜。","reference":"可以推荐可乐鸡翅，并说明它使用鸡翅、可乐、白糖、生抽等，菜谱也注明本菜品偏甜。","source_hint":"data/cook/dishes/meat_dish/可乐鸡翅.md"}
+{"id":"rec_009","category":"recommendation","user_input":"有没有简单的汤可以做？","reference":"可以推荐紫菜蛋花汤，因为它食材简单，主要用紫菜、鸡蛋、葱花、水、盐和油，操作包括泡紫菜、煮紫菜、倒蛋液和撒葱花。","source_hint":"data/cook/dishes/soup/紫菜蛋花汤.md"}
+{"id":"rec_010","category":"recommendation","user_input":"推荐一个可以提前做好酱汁、之后快速吃的主食。","reference":"可以推荐葱油拌面，因为葱油酱汁可以一次制作多份并冷藏保存，吃面时每份面条加入约 15ml 葱油酱汁拌匀即可。","source_hint":"data/cook/dishes/staple/葱油拌面.md"}
