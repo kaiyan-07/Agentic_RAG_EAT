@@ -76,13 +76,6 @@ python -m uvicorn backend.app:app --host 127.0.0.1 --port 8000
 http://127.0.0.1:8000/
 ```
 
-## 本地产物
+## 后续计划
 
-本地运行会生成一些不需要进入仓库的文件，例如：
-
-- `code/vector_index/`：本地生成的 FAISS 向量索引
-- `code/eval_outputs/`：RAGAS 等评估运行结果
-- `.env` / `.env.*`：本地环境变量和 API Key
-- Python 缓存、编辑器配置、系统临时文件和日志
-
-这些内容已经通过 `.gitignore` 忽略。
+当前 Agent 层仍然比较轻量，后续会继续优化 Agent 的部分，包括更智能的工具调用判断、多轮上下文理解、可组合工具链、错误恢复，以及更清晰的推理 / 检索过程展示。
