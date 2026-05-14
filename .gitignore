@@ -1,4 +1,10 @@
+# macOS / editor files
 .DS_Store
+._*
+.idea/
+.vscode/
+
+# Python caches and virtual environments
 __pycache__/
 *.py[cod]
 *.pyo
@@ -7,7 +13,17 @@ __pycache__/
 .venv/
 venv/
 env/
+
+# Environment variables / local secrets
 .env
+.env.*
+!.env.example
+
+# Logs and local runtime files
+*.log
+*.sqlite
+*.sqlite3
+*.db
 
 # Local generated indexes and evaluation outputs
 code/vector_index/
@@ -18,3 +34,5 @@ code/eval_outputs/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.coverage
+htmlcov/

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Agentic Recipe RAG</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="workspace" aria-label="Agentic Recipe RAG">
+        <header class="topbar">
+          <div>
+            <h1>Agentic Recipe RAG</h1>
+            <p>食谱知识库工具化接入，Agent 负责判断、调用和整合。</p>
+          </div>
+          <div class="status" id="status">ready</div>
+        </header>
+
+        <section class="flow" aria-label="数据流转路径">
+          <div class="flow-step">
+            <span>1</span>
+            <strong>UI</strong>
+            <p>提交问题</p>
+          </div>
+          <div class="flow-step">
+            <span>2</span>
+            <strong>Agent</strong>
+            <p>判断工具</p>
+          </div>
+          <div class="flow-step">
+            <span>3</span>
+            <strong>Tool</strong>
+            <p>调用 RAG</p>
+          </div>
+          <div class="flow-step">
+            <span>4</span>
+            <strong>RAG</strong>
+            <p>检索生成</p>
+          </div>
+          <div class="flow-step">
+            <span>5</span>
+            <strong>Answer</strong>
+            <p>返回 trace</p>
+          </div>
+        </section>
+
+        <section class="content">
+          <div class="chat-panel">
+            <div class="messages" id="messages"></div>
+            <form class="composer" id="chat-form">
+              <input
+                id="message-input"
+                name="message"
+                type="text"
+                autocomplete="off"
+                placeholder="问一道菜、一个食材、火候、时间或推荐..."
+              />
+              <button type="submit">发送</button>
+            </form>
+          </div>
+
+          <aside class="trace-panel" aria-label="Trace">
+            <div class="trace-header">
+              <h2>Trace</h2>
+              <button id="clear-button" type="button">清空</button>
+            </div>
+            <div class="trace-body" id="trace-body">
+              <p class="muted">等待一次对话后显示 Agent 步骤和 RAG 检索路径。</p>
+            </div>
+          </aside>
+        </section>
+      </section>
+    </main>
+    <script src="/static/app.js"></script>
+  </body>
+</html>
