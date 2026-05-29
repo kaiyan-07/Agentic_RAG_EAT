@@ -1,9 +1,8 @@
-"""Lightweight agent layer that decides when to call the RAG tool."""
+"""LangGraph agent layer for the Agentic Recipe RAG backend."""
 
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 from dataclasses import dataclass
 from typing import Any, Callable
@@ -15,26 +14,12 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class AgentDecision:
-    use_tool: bool
-    tool_query: str
-    direct_answer: str
-    intent: str = "unknown"
-    reason: str = ""
-
-
-@dataclass
 class TurnState:
     rag_calls: int = 0
-    recursion_steps: int = 0
 
 
 class RecipeAgent:
-    """Agentic shell around the existing RAG pipeline.
-
-    The agent owns conversation flow and tool use. The RAG tool owns retrieval
-    and answer generation, so the current RAG internals stay unchanged.
-    """
+    """LangGraph ReAct-style agent around the existing RAG tool."""
 
     system_prompt = """
 你是一个食谱知识库 Agent。
@@ -44,6 +29,8 @@ class RecipeAgent:
 - 拿到 recipe_rag_search 结果后，必须立即产出最终回答。
 - 不要在收到 RAG 结果后再次调用工具。
 - 如果检索上下文不足，明确说明不知道或没有找到，不要硬编。
+- 如果用户只是寒暄，直接简短回应，并提示可以询问菜谱。
+- 如果问题明显超出食谱知识库范围，不要调用工具，说明你主要负责食谱知识问答。
 """.strip()
 
     def __init__(
@@ -64,126 +51,31 @@ class RecipeAgent:
         include_trace: bool = True,
         emit_event: Callable[[dict[str, Any]], None] | None = None,
     ) -> ChatResponse:
-        steps: list[AgentStep] = []
-        turn_state = TurnState()
-        self.rag_tool.clear_trace()
+        """Synchronous compatibility wrapper around the LangGraph stream."""
+        events: list[dict[str, Any]] = []
 
-        decision = self._decide(message, history)
-        turn_state.recursion_steps += 1
-        steps.append(
-            AgentStep(
-                name="agent_decision",
-                status="completed",
-                detail=(
-                    f"{decision.intent}: 调用 {self.rag_tool.name}: {decision.tool_query}"
-                    if decision.use_tool
-                    else f"{decision.intent}: 不调用工具，直接回答"
-                ),
-            )
-        )
-        self._emit(
-            emit_event,
-            {
-                "type": "agent_step",
-                "step": {
-                    "name": "agent_decision",
-                    "status": "completed",
-                    "detail": steps[-1].detail,
-                },
-            },
-        )
-
-        if not decision.use_tool:
-            answer = decision.direct_answer or "我主要负责食谱知识问答。你可以问我菜谱、食材、步骤、火候或推荐。"
-            self._emit_text(emit_event, answer)
-            return ChatResponse(
+        async def collect() -> ChatResponse:
+            final_response = None
+            async for event in self.astream_events(
+                message=message,
+                history=history,
                 session_id=session_id,
-                answer=answer,
-                used_tool=False,
-                tool_trace=None,
-                agent_steps=steps,
-            )
-
-        tool_trace = None
-        try:
-            if turn_state.recursion_steps >= self.recursion_limit:
-                raise RuntimeError("Agent recursion limit reached before tool call.")
-
-            tool_result = self.rag_tool.run(
-                decision.tool_query,
-                calls_this_turn=turn_state.rag_calls,
-                max_calls_per_turn=self.max_rag_calls_per_turn,
+                include_trace=include_trace,
                 emit_event=emit_event,
-            )
-            if tool_result.raw_trace.get("tool_used"):
-                turn_state.rag_calls += 1
-            rag_trace = tool_result.raw_trace
-            tool_trace = self.rag_tool.to_tool_trace(decision.tool_query, rag_trace)
-            turn_state.recursion_steps += 1
-            steps.append(
-                AgentStep(
-                    name="tool_call",
-                    status="completed",
-                    detail=(
-                        f"检索到 {tool_trace.retrieved_parent_count} 个父文档；"
-                        f"耗时 {tool_trace.elapsed_ms} ms；"
-                        f"本轮 RAG 调用 {turn_state.rag_calls}/{self.max_rag_calls_per_turn}"
-                    ),
-                )
-            )
-            self._emit(
-                emit_event,
-                {
-                    "type": "agent_step",
-                    "step": {
-                        "name": "tool_call",
-                        "status": "completed",
-                        "detail": steps[-1].detail,
-                    },
-                },
-            )
-            answer = rag_trace.get("response") or "抱歉，食谱知识库没有返回可用答案。"
-            if not tool_trace.hit:
-                answer = "抱歉，我没有在当前食谱知识库里找到足够相关的信息。可以换一个更具体的菜名、食材或做法再问我。"
-            self._emit_text(emit_event, answer)
-            turn_state.recursion_steps += 1
-            steps.append(
-                AgentStep(
-                    name="final_response",
-                    status="completed",
-                    detail="收到 RAG 结果后直接生成最终回答，未再次调用工具",
-                )
-            )
-            self._emit(
-                emit_event,
-                {
-                    "type": "agent_step",
-                    "step": {
-                        "name": "final_response",
-                        "status": "completed",
-                        "detail": steps[-1].detail,
-                    },
-                },
-            )
-        except Exception as exc:
-            logger.exception("RAG tool failed")
-            steps.append(
-                AgentStep(
-                    name="tool_call",
-                    status="failed",
-                    detail=str(exc),
-                )
-            )
-            answer = "抱歉，食谱知识库暂时没有成功返回结果。请稍后再试，或换一个更具体的菜名/问题。"
-            self._emit_text(emit_event, answer)
+            ):
+                events.append(event)
+                if event.get("type") == "final":
+                    final_response = event.get("response")
+            if not final_response:
+                raise RuntimeError("LangGraph agent did not produce a final response.")
+            return self._response_from_dict(final_response)
 
-        return ChatResponse(
-            session_id=session_id,
-            answer=answer,
-            used_tool=True,
-            tool_trace=tool_trace if include_trace else None,
-            agent_steps=steps,
-        )
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            return asyncio.run(collect())
+
+        raise RuntimeError("RecipeAgent.answer() cannot be called from an active event loop.")
 
     async def astream_events(
         self,
@@ -191,23 +83,25 @@ class RecipeAgent:
         history: list[ChatMessage],
         session_id: str,
         include_trace: bool = True,
+        emit_event: Callable[[dict[str, Any]], None] | None = None,
     ):
-        """Stream agent events through one queue while the turn runs in the background."""
+        """Run LangGraph in a background task and yield events from one queue."""
         output_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue()
         loop = asyncio.get_running_loop()
 
-        def emit_event(event: dict[str, Any]) -> None:
+        def enqueue(event: dict[str, Any]) -> None:
+            if emit_event:
+                emit_event(event)
             loop.call_soon_threadsafe(output_queue.put_nowait, event)
 
         async def run_turn() -> None:
             try:
-                response = await asyncio.to_thread(
-                    self.answer,
-                    message,
-                    history,
-                    session_id,
-                    include_trace,
-                    emit_event,
+                response = await self._run_langgraph_turn(
+                    message=message,
+                    history=history,
+                    session_id=session_id,
+                    include_trace=include_trace,
+                    emit_event=enqueue,
                 )
                 await output_queue.put(
                     {
@@ -216,7 +110,7 @@ class RecipeAgent:
                     }
                 )
             except Exception as exc:
-                logger.exception("Streaming agent turn failed")
+                logger.exception("LangGraph agent turn failed")
                 await output_queue.put({"type": "error", "message": str(exc)})
             finally:
                 await output_queue.put({"type": "done"})
@@ -232,140 +126,156 @@ class RecipeAgent:
             if not task.done():
                 task.cancel()
 
-    def _decide(self, message: str, history: list[ChatMessage]) -> AgentDecision:
-        text = message.strip()
-        llm_decision = self._llm_decide(text, history)
-        if llm_decision:
-            return llm_decision
+    async def _run_langgraph_turn(
+        self,
+        message: str,
+        history: list[ChatMessage],
+        session_id: str,
+        include_trace: bool,
+        emit_event: Callable[[dict[str, Any]], None],
+    ) -> ChatResponse:
+        self.rag_tool.clear_trace()
+        turn_state = TurnState()
+        steps: list[AgentStep] = []
+        final_text_parts: list[str] = []
 
-        if self._is_recipe_related(text, history):
-            return AgentDecision(
-                use_tool=True,
-                tool_query=text,
-                direct_answer="",
-                intent="recipe_search",
-                reason="规则判断为食谱相关问题",
+        agent = self._build_langgraph_agent(turn_state, emit_event)
+        messages = self._to_langchain_messages(history, message)
+
+        steps.append(
+            AgentStep(
+                name="langgraph_agent",
+                status="completed",
+                detail="LangGraph ReAct agent started",
             )
-
-        return AgentDecision(
-            use_tool=False,
-            tool_query="",
-            direct_answer="你好，我是食谱 Agent。你可以问我菜谱推荐、食材用量、制作步骤、火候时间或烹饪技巧。",
-            intent="small_talk",
-            reason="规则判断为非食谱问题",
+        )
+        emit_event(
+            {
+                "type": "agent_step",
+                "step": {
+                    "name": "langgraph_agent",
+                    "status": "completed",
+                    "detail": "LangGraph ReAct agent started",
+                },
+            }
         )
 
-    def _llm_decide(self, message: str, history: list[ChatMessage]) -> AgentDecision | None:
-        prompt = f"""
-{self.system_prompt}
+        async for chunk, metadata in agent.astream(
+            {"messages": messages},
+            config={"recursion_limit": self.recursion_limit},
+            stream_mode="messages",
+        ):
+            if getattr(chunk, "tool_call_chunks", None):
+                continue
 
-请根据用户最新输入和最近对话，做一次结构化 Agent 决策。
-只输出 JSON，不要输出 Markdown。
+            content = getattr(chunk, "content", "")
+            if not content:
+                continue
 
-可选 intent：
-- recipe_search：查询具体菜谱、食材、步骤、时间、火候、技巧
-- recommendation：根据场景、食材、口味、时间推荐
-- follow_up：依赖历史上下文的追问
-- clarification：信息不足，需要先澄清
-- small_talk：寒暄
-- out_of_scope：非食谱知识库问题
+            if isinstance(content, list):
+                content = "".join(
+                    item.get("text", "") if isinstance(item, dict) else str(item)
+                    for item in content
+                )
+            content = str(content)
+            if not content:
+                continue
 
-输出格式：
-{{
-  "intent": "...",
-  "use_tool": true,
-  "tool_query": "适合检索的独立问题",
-  "direct_answer": "不调用工具时给用户的回答",
-  "reason": "一句话说明"
-}}
+            final_text_parts.append(content)
+            emit_event({"type": "token", "content": content})
 
-最近历史：
-{self._format_history(history)}
-
-用户最新输入：
-{message}
-""".strip()
-
-        try:
-            raw = self.rag_tool.invoke_llm(prompt)
-            data = self._parse_json_object(raw)
-            if not data:
-                return None
-
-            intent = str(data.get("intent") or "unknown")
-            use_tool = bool(data.get("use_tool"))
-            if intent in {"small_talk", "out_of_scope", "clarification"}:
-                use_tool = False
-            elif intent in {"recipe_search", "recommendation", "follow_up"}:
-                use_tool = True
-
-            tool_query = str(data.get("tool_query") or message).strip()
-            direct_answer = str(data.get("direct_answer") or "").strip()
-            if not use_tool and not direct_answer:
-                direct_answer = "我主要负责食谱知识问答。你可以问我菜谱、食材、步骤、火候或推荐。"
-
-            return AgentDecision(
-                use_tool=use_tool,
-                tool_query=tool_query,
-                direct_answer=direct_answer,
-                intent=intent,
-                reason=str(data.get("reason") or ""),
+        answer = "".join(final_text_parts).strip()
+        tool_trace = None
+        raw_trace = self.rag_tool.last_trace()
+        if raw_trace:
+            query = raw_trace.get("tool_query") or message
+            tool_trace = self.rag_tool.to_tool_trace(str(query), raw_trace)
+            steps.append(
+                AgentStep(
+                    name="tool_call",
+                    status="completed" if tool_trace.tool_used else "skipped",
+                    detail=(
+                        f"检索到 {tool_trace.retrieved_parent_count} 个父文档；"
+                        f"耗时 {tool_trace.elapsed_ms} ms；"
+                        f"本轮 RAG 调用 {turn_state.rag_calls}/{self.max_rag_calls_per_turn}"
+                    ),
+                )
             )
-        except Exception as exc:
-            logger.warning("LLM agent decision failed; falling back to rules: %s", exc)
-            return None
 
-    def _parse_json_object(self, text: str) -> dict[str, Any] | None:
-        text = text.strip()
-        start = text.find("{")
-        end = text.rfind("}")
-        if start == -1 or end == -1 or end <= start:
-            return None
-        return json.loads(text[start : end + 1])
+        if not answer:
+            answer = "抱歉，我暂时没有生成可用回答。请换一个更具体的菜名、食材或做法再问我。"
 
-    def _is_recipe_related(self, message: str, history: list[ChatMessage]) -> bool:
-        recipe_keywords = [
-            "菜",
-            "食谱",
-            "做法",
-            "怎么做",
-            "步骤",
-            "食材",
-            "原料",
-            "调料",
-            "用量",
-            "火候",
-            "温度",
-            "多久",
-            "几分钟",
-            "推荐",
-            "吃什么",
-            "早餐",
-            "午餐",
-            "晚餐",
-            "饮品",
-            "甜品",
-            "汤",
-            "主食",
-            "空气炸锅",
-            "蒸",
-            "煮",
-            "炒",
-            "煎",
-            "烤",
-        ]
-        if any(keyword in message for keyword in recipe_keywords):
-            return True
+        steps.append(
+            AgentStep(
+                name="final_response",
+                status="completed",
+                detail="LangGraph agent produced the final response",
+            )
+        )
 
-        follow_up_keywords = ["它", "这个", "刚才", "那道", "多少", "还要", "可以换", "注意"]
-        recent_assistant = " ".join(item.content for item in history[-4:] if item.role == "assistant")
-        return bool(recent_assistant and any(keyword in message for keyword in follow_up_keywords))
+        return ChatResponse(
+            session_id=session_id,
+            answer=answer,
+            used_tool=bool(tool_trace and tool_trace.tool_used),
+            tool_trace=tool_trace if include_trace else None,
+            agent_steps=steps,
+        )
 
-    def _format_history(self, history: list[ChatMessage], limit: int = 8) -> str:
-        if not history:
-            return "无"
-        recent = history[-limit:]
-        return "\n".join(f"{item.role}: {item.content}" for item in recent)
+    def _build_langgraph_agent(
+        self,
+        turn_state: TurnState,
+        emit_event: Callable[[dict[str, Any]], None],
+    ):
+        try:
+            from langchain_core.tools import tool
+            from langgraph.prebuilt import create_react_agent
+        except ImportError as exc:
+            raise RuntimeError(
+                "LangGraph Agent requires langgraph and langchain-core. "
+                "Run `python -m pip install -r requirements.txt` from the code directory."
+            ) from exc
+
+        @tool(self.rag_tool.name)
+        def recipe_rag_search(query: str) -> str:
+            """Search the local recipe knowledge base."""
+            tool_result = self.rag_tool.run(
+                query,
+                calls_this_turn=turn_state.rag_calls,
+                max_calls_per_turn=self.max_rag_calls_per_turn,
+                emit_event=emit_event,
+            )
+            if tool_result.raw_trace.get("tool_used"):
+                turn_state.rag_calls += 1
+            return tool_result.agent_context
+
+        llm = self.rag_tool.get_llm()
+        return self._create_react_agent(create_react_agent, llm, [recipe_rag_search])
+
+    def _create_react_agent(self, create_react_agent, llm, tools):
+        try:
+            return create_react_agent(llm, tools, prompt=self.system_prompt)
+        except TypeError:
+            return create_react_agent(llm, tools, state_modifier=self.system_prompt)
+
+    def _to_langchain_messages(self, history: list[ChatMessage], message: str):
+        try:
+            from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+        except ImportError as exc:
+            raise RuntimeError(
+                "LangGraph Agent requires langchain-core message classes. "
+                "Run `python -m pip install -r requirements.txt` from the code directory."
+            ) from exc
+
+        converted = []
+        for item in history[-12:]:
+            if item.role == "user":
+                converted.append(HumanMessage(content=item.content))
+            elif item.role == "assistant":
+                converted.append(AIMessage(content=item.content))
+            elif item.role == "system":
+                converted.append(SystemMessage(content=item.content))
+        converted.append(HumanMessage(content=message))
+        return converted
 
     def summarize_history(self, messages: list[ChatMessage]) -> str:
         """Summarize older turns before they are compacted out of the prompt window."""
@@ -400,20 +310,10 @@ class RecipeAgent:
         recent = messages[-limit:]
         return "\n".join(f"- {item.role}: {item.content[:180]}" for item in recent)
 
-    def _emit(self, emit_event: Callable[[dict[str, Any]], None] | None, event: dict[str, Any]) -> None:
-        if emit_event:
-            emit_event(event)
-
-    def _emit_text(self, emit_event: Callable[[dict[str, Any]], None] | None, text: str) -> None:
-        if not emit_event:
-            return
-        for chunk in self._chunk_text(text):
-            emit_event({"type": "token", "content": chunk})
-
-    def _chunk_text(self, text: str, size: int = 12) -> list[str]:
-        return [text[index : index + size] for index in range(0, len(text), size)] or [""]
-
     def _response_to_dict(self, response: ChatResponse) -> dict[str, Any]:
         if hasattr(response, "model_dump"):
             return response.model_dump()
         return response.dict()
+
+    def _response_from_dict(self, data: dict[str, Any]) -> ChatResponse:
+        return ChatResponse(**data)

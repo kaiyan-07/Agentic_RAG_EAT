@@ -58,9 +58,12 @@ class RecipeRAGTool:
         return getattr(self._trace_state, "last_rag_trace", None)
 
     def invoke_llm(self, prompt: str) -> str:
-        rag = self._get_rag()
-        response = rag.generation_module.llm.invoke(prompt)
+        response = self.get_llm().invoke(prompt)
         return getattr(response, "content", str(response)).strip()
+
+    def get_llm(self):
+        rag = self._get_rag()
+        return rag.generation_module.llm
 
     def run(
         self,
