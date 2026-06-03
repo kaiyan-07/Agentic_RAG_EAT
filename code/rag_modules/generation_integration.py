@@ -2,12 +2,13 @@
 生成集成模块
 """
 
+import json
 import os
 import logging
-from typing import List
+from typing import Any, Dict, List
 
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
-from langchain_community.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain_core.documents import Document
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
@@ -53,7 +54,7 @@ class GenerationIntegrationModule:
             "DEEPSEEK_API_KEY",
             "AIHUBMIX_API_KEY",
             "MOONSHOT_API_KEY",
-            "QWEN_API_KEY"
+            "QWEN_API_KEY",
             "API_KEY",
         ]
         for env_name in candidate_envs:
@@ -297,6 +298,235 @@ class GenerationIntegrationModule:
             return result
         else:
             return 'general'  # 默认类型
+
+    def retrieval_rewrite_router(self, query: str, route_type: str, grade: Dict[str, Any] | None = None) -> Dict[str, Any]:
+        """
+        判断二次检索应使用 Step-Back 还是 HyDE。
+
+        Returns:
+            {
+                "strategy": "step_back" | "hyde" | "complex",
+                "reason": "...",
+            }
+        """
+        grade_text = json.dumps(grade or {}, ensure_ascii=False)
+        prompt = PromptTemplate(
+            template="""
+你是食谱 RAG 查询重写路由器。请在 Step-Back 与 HyDE 中选择一种二次检索策略。
+
+策略说明：
+- step_back：把具体问题抽象成更上位的检索问题，适合技巧、火候、替换、失败原因、模糊追问。
+- hyde：生成一段理想答案/假想食谱文档来检索，适合推荐、宽泛需求、多约束场景、初次检索命中弱。
+- complex：同时使用 step_back 和 hyde，适合多约束、需要综合场景、初检明显跑偏的问题。
+
+用户问题：{query}
+问题类型：{route_type}
+初检评分：{grade}
+
+只输出 JSON：
+{{
+  "strategy": "step_back" 或 "hyde" 或 "complex",
+  "reason": "一句话原因"
+}}
+""",
+            input_variables=["query", "route_type", "grade"],
+        )
+        chain = prompt | self.llm | StrOutputParser()
+        raw = chain.invoke({"query": query, "route_type": route_type, "grade": grade_text}).strip()
+        data = self._parse_json_object(raw) or {}
+        strategy = str(data.get("strategy") or "none").lower()
+        strategy = strategy.replace("-", "_")
+        if strategy not in {"step_back", "hyde", "complex"}:
+            strategy = "step_back"
+        return {
+            "strategy": strategy,
+            "reason": str(data.get("reason") or ""),
+        }
+
+    def step_back_expand(self, query: str) -> Dict[str, str]:
+        """生成 Step-Back 退步问题、背景答案和融合后的扩展查询。"""
+        step_back_question = self._generate_step_back_question(query)
+        step_back_answer = self._answer_step_back_question(step_back_question)
+        expanded_query = query
+        if step_back_question or step_back_answer:
+            expanded_query = (
+                f"{query}\n\n"
+                f"退步问题：{step_back_question}\n"
+                f"退步问题答案：{step_back_answer}"
+            )
+        return {
+            "step_back_question": step_back_question,
+            "step_back_answer": step_back_answer,
+            "expanded_query": expanded_query,
+        }
+
+    def _generate_step_back_question(self, query: str) -> str:
+        """生成 Step-Back 抽象问题。"""
+        prompt = PromptTemplate(
+            template="""
+你是食谱检索查询改写器。请把用户问题抽象成更上位、更容易补充背景知识的 Step-Back 退步问题。
+
+要求：
+- 保留烹饪目标或约束
+- 抽象掉过细的菜名、口语化表达或局部条件
+- 输出一句中文问题
+- 不要解释
+
+用户问题：{query}
+
+Step-Back 退步问题：
+""",
+            input_variables=["query"],
+        )
+        chain = prompt | self.llm | StrOutputParser()
+        return chain.invoke({"query": query}).strip()
+
+    def _answer_step_back_question(self, step_back_question: str) -> str:
+        """回答 Step-Back 退步问题，作为检索背景知识。"""
+        if not step_back_question:
+            return ""
+        prompt = PromptTemplate(
+            template="""
+请简要回答以下食谱/烹饪退步问题，提供通用原理或背景知识。
+
+要求：
+- 控制在 120 字以内
+- 只输出答案，不要解释你的推理过程
+- 适合拼接进检索查询
+
+退步问题：{query}
+
+答案：
+""",
+            input_variables=["query"],
+        )
+        chain = prompt | self.llm | StrOutputParser()
+        return chain.invoke({"query": step_back_question}).strip()
+
+    def generate_hypothetical_document(self, query: str) -> str:
+        """生成 HyDE 假想食谱答案，用作检索查询。"""
+        prompt = PromptTemplate(
+            template="""
+你是食谱 RAG 的 HyDE 查询生成器。请基于用户问题，写一段可能出现在食谱知识库中的假想答案/食谱片段。
+
+要求：
+- 使用食谱文档常见措辞
+- 包含可能的菜名、食材、步骤、时间、火候或口味关键词
+- 不要声称这是事实，只生成用于检索的文本
+- 控制在 120 字以内
+
+用户问题：{query}
+
+HyDE 检索文本：
+""",
+            input_variables=["query"],
+        )
+        chain = prompt | self.llm | StrOutputParser()
+        return chain.invoke({"query": query}).strip()
+
+    def generate_step_back_query(self, query: str) -> str:
+        """兼容旧调用：返回 Step-Back 扩展查询。"""
+        return self.step_back_expand(query)["expanded_query"]
+
+    def generate_hyde_query(self, query: str) -> str:
+        """兼容旧调用：返回 HyDE 假想文档。"""
+        return self.generate_hypothetical_document(query)
+
+    def grade_documents(self, query: str, context_docs: List[Document]) -> Dict[str, Any]:
+        """
+        结构化评估检索文档是否足以回答用户问题。
+        """
+        if not context_docs:
+            return {
+                "relevant": False,
+                "needs_rewrite": True,
+                "confidence": 0.0,
+                "relevant_doc_indices": [],
+                "reason": "没有检索到文档",
+            }
+
+        context = self._build_grading_context(context_docs)
+        prompt = PromptTemplate(
+            template="""
+你是 RAG 检索结果评估器。请判断这些食谱文档是否足以回答用户问题。
+
+评分规则：
+- binary_score=yes：至少有一个文档和问题强相关，且足以支撑回答。
+- binary_score=no：文档明显不相关、过少、只弱相关，或无法支撑回答。
+- confidence：0 到 1。
+- relevant_doc_indices：相关文档编号，从 1 开始。
+
+用户问题：
+{query}
+
+候选文档：
+{context}
+
+只输出 JSON：
+{{
+  "binary_score": "yes",
+  "confidence": 0.83,
+  "relevant_doc_indices": [1, 3],
+  "reason": "一句话说明"
+}}
+""",
+            input_variables=["query", "context"],
+        )
+        chain = prompt | self.llm | StrOutputParser()
+        raw = chain.invoke({"query": query, "context": context}).strip()
+        data = self._parse_json_object(raw) or {}
+
+        confidence = data.get("confidence", 0.0)
+        try:
+            confidence = float(confidence)
+        except (TypeError, ValueError):
+            confidence = 0.0
+
+        relevant_doc_indices = data.get("relevant_doc_indices") or []
+        if not isinstance(relevant_doc_indices, list):
+            relevant_doc_indices = []
+
+        binary_score = str(data.get("binary_score") or "").strip().lower()
+        if binary_score not in {"yes", "no"}:
+            relevant = self._coerce_bool(data.get("relevant"))
+            needs_rewrite = self._coerce_bool(data.get("needs_rewrite"))
+            binary_score = "yes" if relevant and not needs_rewrite else "no"
+
+        return {
+            "binary_score": binary_score,
+            "relevant": binary_score == "yes",
+            "needs_rewrite": binary_score != "yes",
+            "confidence": max(0.0, min(1.0, confidence)),
+            "relevant_doc_indices": relevant_doc_indices,
+            "reason": str(data.get("reason") or ""),
+        }
+
+    def _build_grading_context(self, docs: List[Document], max_doc_chars: int = 700) -> str:
+        parts = []
+        for index, doc in enumerate(docs, 1):
+            dish_name = doc.metadata.get("dish_name", "未知菜品")
+            source = doc.metadata.get("source", "")
+            content = doc.page_content[:max_doc_chars]
+            parts.append(f"【文档 {index}】{dish_name}\n来源: {source}\n内容: {content}")
+        return "\n\n".join(parts)
+
+    def _parse_json_object(self, text: str) -> Dict[str, Any] | None:
+        start = text.find("{")
+        end = text.rfind("}")
+        if start == -1 or end == -1 or end <= start:
+            return None
+        try:
+            return json.loads(text[start : end + 1])
+        except json.JSONDecodeError:
+            logger.warning("无法解析结构化输出: %s", text)
+            return None
+
+    def _coerce_bool(self, value: Any) -> bool:
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str):
+            return value.strip().lower() in {"true", "yes", "1", "是", "相关", "需要"}
+        return bool(value)
 
     def generate_list_answer(self, query: str, context_docs: List[Document]) -> str:
         """

@@ -95,9 +95,14 @@ class RecipeRAGTool:
             return ToolRunResult(agent_context=TOOL_CALL_LIMIT_MESSAGE, raw_trace=trace)
 
         rag = self._get_rag()
-        self._emit_rag_step(emit_event, "🔎", "正在检索知识库...", query)
+        self._emit_rag_step(emit_event, "🔎", "调用 RAG 工具...", query)
         start = time.perf_counter()
-        trace = rag.ask_with_trace(query, stream=False, include_raw_documents=False)
+        trace = rag.ask_with_trace(
+            query,
+            stream=False,
+            include_raw_documents=False,
+            pipeline_options={"rag_step_emitter": emit_event},
+        )
         elapsed_ms = round((time.perf_counter() - start) * 1000, 2)
         trace = self._with_side_channel_metadata(query, trace, elapsed_ms)
         self._emit_rag_step(
@@ -149,13 +154,19 @@ class RecipeRAGTool:
                 "tool_query": query,
                 "tool_used": True,
                 "hit": (enriched.get("retrieved_parent_count") or 0) > 0,
-                "retrieval_mode": "metadata_filtered_hybrid" if filters else "hybrid",
+                "retrieval_mode": self._retrieval_mode(enriched, bool(filters)),
                 "rerank_applied": True,
                 "elapsed_ms": elapsed_ms,
                 "retrieved_docs": retrieved_docs,
             }
         )
         return enriched
+
+    def _retrieval_mode(self, trace: dict[str, Any], filtered: bool) -> str:
+        base = "metadata_filtered_hybrid" if filtered else "hybrid"
+        if trace.get("rewrite_triggered"):
+            return f"{base}+{trace.get('rewrite_strategy') or 'rewrite'}"
+        return base
 
     def _format_docs_for_agent(self, trace: dict[str, Any]) -> str:
         if not trace.get("hit"):
@@ -183,6 +194,15 @@ class RecipeRAGTool:
             hit=trace.get("hit", False),
             route_type=trace.get("route_type"),
             rewritten_query=trace.get("rewritten_query"),
+            retrieval_grade=trace.get("retrieval_grade") or {},
+            rewrite_triggered=trace.get("rewrite_triggered", False),
+            rewrite_strategy=trace.get("rewrite_strategy"),
+            rewrite_reason=trace.get("rewrite_reason"),
+            expanded_query=trace.get("expanded_query"),
+            step_back_question=trace.get("step_back_question"),
+            step_back_answer=trace.get("step_back_answer"),
+            hypothetical_document=trace.get("hypothetical_document"),
+            retrieval_attempts=trace.get("retrieval_attempts") or [],
             filters=trace.get("filters") or {},
             retrieval_mode=trace.get("retrieval_mode"),
             rerank_applied=trace.get("rerank_applied", False),

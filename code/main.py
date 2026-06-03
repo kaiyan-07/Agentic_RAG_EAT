@@ -175,6 +175,56 @@ class RecipeRAGSystem:
                 chunk_info.append(f"{dish_name}(内容片段)")
         return chunk_info
 
+    def _emit_rag_step(self, emitter, step_type: str, icon: str, label: str, detail: str) -> None:
+        """向上层实时发送 RAG pipeline 步骤。"""
+        if not emitter:
+            return
+        emitter(
+            {
+                "type": "rag_step",
+                "step": {
+                    "type": step_type,
+                    "icon": icon,
+                    "label": label,
+                    "detail": detail,
+                },
+            }
+        )
+
+    def _retrieve_chunks(self, query: str, filters: Dict[str, Any], verbose: bool):
+        """执行一次带可选元数据过滤的混合检索。"""
+        if filters:
+            self._log_progress(f"应用过滤条件: {filters}", verbose)
+            return self.retrieval_module.metadata_filtered_search(
+                query,
+                filters,
+                top_k=self.config.top_k
+            )
+        return self.retrieval_module.hybrid_search(query, top_k=self.config.top_k)
+
+    def _merge_unique_chunks(self, chunks: List) -> List:
+        """按 source + content 去重，并保留前 top_k 个结果。"""
+        seen = set()
+        merged = []
+        for chunk in chunks:
+            key = (chunk.metadata.get("source", ""), hash(chunk.page_content))
+            if key in seen:
+                continue
+            seen.add(key)
+            merged.append(chunk)
+            if len(merged) >= self.config.top_k:
+                break
+        return merged
+
+    def _build_retrieval_attempt(self, stage: str, query: str, strategy: str, chunks: List) -> Dict[str, Any]:
+        return {
+            "stage": stage,
+            "query": query,
+            "strategy": strategy,
+            "chunk_count": len(chunks),
+            "chunk_summaries": self._summarize_chunks(chunks),
+        }
+
     def _run_query_pipeline(
         self,
         question: str,
@@ -200,9 +250,14 @@ class RecipeRAGSystem:
         options = {
             "enable_router": True,
             "enable_rewrite": True,
+            "enable_retrieval_grading": True,
+            "enable_rewrite_retrieval": True,
+            "rewrite_confidence_threshold": 0.55,
+            "rag_step_emitter": None,
         }
         if pipeline_options:
             options.update(pipeline_options)
+        emit_step = options.get("rag_step_emitter")
 
         self._log_progress(f"\n❓ 用户问题: {question}", verbose)
 
@@ -222,17 +277,100 @@ class RecipeRAGSystem:
             self._log_progress("🤖 智能分析查询...", verbose)
             rewritten_query = self.generation_module.query_rewrite(question)
 
+        self._emit_rag_step(emit_step, "retrieve_initial", "🔍", "正在检索知识库...", rewritten_query)
         self._log_progress("🔍 检索相关文档...", verbose)
         filters = self._extract_filters_from_query(question)
-        if filters:
-            self._log_progress(f"应用过滤条件: {filters}", verbose)
-            relevant_chunks = self.retrieval_module.metadata_filtered_search(
-                rewritten_query,
-                filters,
-                top_k=self.config.top_k
+        relevant_chunks = self._retrieve_chunks(rewritten_query, filters, verbose)
+        retrieval_attempts = [
+            self._build_retrieval_attempt("initial", rewritten_query, "base", relevant_chunks)
+        ]
+
+        relevance_grade = {
+            "relevant": bool(relevant_chunks),
+            "needs_rewrite": not bool(relevant_chunks),
+            "confidence": 1.0 if relevant_chunks else 0.0,
+            "relevant_doc_indices": [],
+            "reason": "未启用文档相关性评分",
+        }
+        rewrite_triggered = False
+        rewrite_strategy = "none"
+        rewrite_reason = ""
+        expanded_query = ""
+        step_back_question = ""
+        step_back_answer = ""
+        hypothetical_document = ""
+
+        if options["enable_retrieval_grading"]:
+            self._emit_rag_step(emit_step, "grade_documents", "🧪", "正在评估文档相关性...", rewritten_query)
+            relevance_grade = self.generation_module.grade_documents(question, relevant_chunks)
+            self._log_progress(
+                f"🧪 相关性评分: relevant={relevance_grade.get('relevant')} "
+                f"confidence={relevance_grade.get('confidence')}",
+                verbose,
             )
-        else:
-            relevant_chunks = self.retrieval_module.hybrid_search(rewritten_query, top_k=self.config.top_k)
+
+        should_rewrite = (
+            options["enable_rewrite_retrieval"]
+            and (
+                relevance_grade.get("needs_rewrite")
+                or (relevance_grade.get("confidence") or 0.0) < options["rewrite_confidence_threshold"]
+            )
+        )
+
+        if should_rewrite:
+            rewrite_route = self.generation_module.retrieval_rewrite_router(
+                question,
+                route_type,
+                relevance_grade,
+            )
+            rewrite_strategy = rewrite_route.get("strategy", "none")
+            rewrite_reason = rewrite_route.get("reason", "")
+            rewrite_triggered = True
+            self._emit_rag_step(
+                emit_step,
+                "rewrite_question",
+                "📝",
+                "正在重写查询...",
+                f"策略: {rewrite_strategy}；原因: {rewrite_reason}",
+            )
+
+            expanded_results = []
+            if rewrite_strategy in {"step_back", "complex"}:
+                step_back = self.generation_module.step_back_expand(question)
+                step_back_question = step_back.get("step_back_question", "")
+                step_back_answer = step_back.get("step_back_answer", "")
+                expanded_query = step_back.get("expanded_query", "")
+                self._emit_rag_step(
+                    emit_step,
+                    "retrieve_expanded",
+                    "🔁",
+                    "使用 Step-Back 扩展查询重新检索...",
+                    expanded_query,
+                )
+                step_back_chunks = self._retrieve_chunks(expanded_query, filters, verbose)
+                expanded_results.extend(step_back_chunks)
+                retrieval_attempts.append(
+                    self._build_retrieval_attempt("expanded", expanded_query, "step_back", step_back_chunks)
+                )
+
+            if rewrite_strategy in {"hyde", "complex"}:
+                hypothetical_document = self.generation_module.generate_hypothetical_document(question)
+                self._emit_rag_step(
+                    emit_step,
+                    "retrieve_expanded",
+                    "🔁",
+                    "使用 HyDE 假想文档重新检索...",
+                    hypothetical_document,
+                )
+                hyde_chunks = self._retrieve_chunks(hypothetical_document, filters, verbose)
+                expanded_results.extend(hyde_chunks)
+                retrieval_attempts.append(
+                    self._build_retrieval_attempt("expanded", hypothetical_document, "hyde", hyde_chunks)
+                )
+
+            expanded_chunks = self._merge_unique_chunks(expanded_results)
+            if expanded_chunks:
+                relevant_chunks = expanded_chunks
 
         chunk_summaries = self._summarize_chunks(relevant_chunks)
         if relevant_chunks:
@@ -247,6 +385,15 @@ class RecipeRAGSystem:
             "question": question,
             "route_type": route_type,
             "rewritten_query": rewritten_query,
+            "retrieval_grade": relevance_grade,
+            "rewrite_triggered": rewrite_triggered,
+            "rewrite_strategy": rewrite_strategy,
+            "rewrite_reason": rewrite_reason,
+            "expanded_query": expanded_query,
+            "step_back_question": step_back_question,
+            "step_back_answer": step_back_answer,
+            "hypothetical_document": hypothetical_document,
+            "retrieval_attempts": retrieval_attempts,
             "filters": filters,
             "retrieved_chunk_count": len(relevant_chunks),
             "retrieved_chunk_summaries": chunk_summaries,

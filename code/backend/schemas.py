@@ -32,6 +32,15 @@ class ToolTrace(BaseModel):
     hit: bool = False
     route_type: str | None = None
     rewritten_query: str | None = None
+    retrieval_grade: dict[str, Any] = Field(default_factory=dict)
+    rewrite_triggered: bool = False
+    rewrite_strategy: str | None = None
+    rewrite_reason: str | None = None
+    expanded_query: str | None = None
+    step_back_question: str | None = None
+    step_back_answer: str | None = None
+    hypothetical_document: str | None = None
+    retrieval_attempts: list[dict[str, Any]] = Field(default_factory=list)
     filters: dict[str, Any] = Field(default_factory=dict)
     retrieval_mode: str | None = None
     rerank_applied: bool = False

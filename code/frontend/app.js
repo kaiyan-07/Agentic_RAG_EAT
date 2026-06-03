@@ -64,6 +64,11 @@ function renderTrace(payload) {
           <dt>query</dt><dd>${escapeHtml(trace.tool_query)}</dd>
           <dt>route</dt><dd>${escapeHtml(trace.route_type || "-")}</dd>
           <dt>rewrite</dt><dd>${escapeHtml(trace.rewritten_query || "-")}</dd>
+          <dt>grade</dt><dd>${escapeHtml(JSON.stringify(trace.retrieval_grade || {}))}</dd>
+          <dt>rewrite retrieval</dt><dd>${trace.rewrite_triggered ? escapeHtml(trace.rewrite_strategy || "-") : "no"}</dd>
+          <dt>expanded query</dt><dd>${escapeHtml(trace.expanded_query || "-")}</dd>
+          <dt>step-back question</dt><dd>${escapeHtml(trace.step_back_question || "-")}</dd>
+          <dt>hyde doc</dt><dd>${escapeHtml(trace.hypothetical_document || "-")}</dd>
           <dt>filters</dt><dd>${escapeHtml(JSON.stringify(trace.filters || {}))}</dd>
           <dt>retrieval</dt><dd>${escapeHtml(trace.retrieval_mode || "-")}</dd>
           <dt>rerank</dt><dd>${trace.rerank_applied ? "yes" : "no"}</dd>
